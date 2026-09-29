@@ -1,0 +1,204 @@
+@import "tailwindcss";
+@import "@fontsource-variable/fraunces/opsz.css";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ─── LÍA design tokens ─────────────────────────────────────────────────────
+   Calm, warm and editorial in light mode; deep and quiet in dark mode.
+   Every color in the UI comes from these tokens. */
+:root {
+  --bg: #f6f4ef;
+  --bg-tint: #f1eee7;
+  --surface: #fffefb;
+  --surface-2: #f2efe8;
+  --surface-3: #e9e5dc;
+  --ink: #1c1b18;
+  --ink-2: #57534b;
+  --ink-3: #8d887d;
+  --line: #e6e2d8;
+  --line-strong: #d7d1c4;
+  --accent: #4f46e5;
+  --accent-2: #7c6cf2;
+  --accent-ink: #ffffff;
+  --accent-soft: #ecebfd;
+  --good: #2d8a63;
+  --good-soft: #e2f3ea;
+  --warn: #b7791f;
+  --warn-soft: #faf0dc;
+  --bad: #c24a33;
+  --bad-soft: #fbe6e0;
+  --focus: #4f46e5;
+  --shadow-sm: 0 1px 2px rgb(28 27 24 / 0.05);
+  --shadow: 0 1px 2px rgb(28 27 24 / 0.04), 0 10px 30px -14px rgb(28 27 24 / 0.16);
+  --shadow-lg: 0 2px 6px rgb(28 27 24 / 0.05), 0 24px 60px -24px rgb(28 27 24 / 0.28);
+  --glass: rgb(255 254 251 / 0.78);
+  --orb-a: #6d5ef5;
+  --orb-b: #22b8a6;
+  --orb-c: #f0a35e;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #0c0d0f;
+  --bg-tint: #101114;
+  --surface: #15171a;
+  --surface-2: #1b1d21;
+  --surface-3: #24272c;
+  --ink: #eeebe5;
+  --ink-2: #aba69c;
+  --ink-3: #726e66;
+  --line: #24272c;
+  --line-strong: #30343a;
+  --accent: #8b87ff;
+  --accent-2: #a99cff;
+  --accent-ink: #0c0d0f;
+  --accent-soft: rgb(139 135 255 / 0.14);
+  --good: #52c79a;
+  --good-soft: rgb(82 199 154 / 0.13);
+  --warn: #e7b45a;
+  --warn-soft: rgb(231 180 90 / 0.13);
+  --bad: #ef8069;
+  --bad-soft: rgb(239 128 105 / 0.13);
+  --focus: #a99cff;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 12px 32px -16px rgb(0 0 0 / 0.7);
+  --shadow-lg: 0 2px 8px rgb(0 0 0 / 0.4), 0 28px 70px -24px rgb(0 0 0 / 0.8);
+  --glass: rgb(21 23 26 / 0.78);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-tint: var(--bg-tint);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-good: var(--good);
+  --color-good-soft: var(--good-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: "Fraunces Variable", ui-serif, Georgia, serif;
+  --shadow-soft: var(--shadow);
+  --shadow-lift: var(--shadow-lg);
+  --radius-card: 1.25rem;
+  --animate-fade-up: fade-up 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-orb: orb-spin 14s linear infinite;
+  --animate-breathe: breathe 3.2s ease-in-out infinite;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes orb-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+  }
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--ink);
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+  }
+  input, textarea, select, button {
+    font: inherit;
+    color: inherit;
+  }
+  input::placeholder, textarea::placeholder {
+    color: var(--ink-3);
+  }
+  dialog::backdrop {
+    background: rgb(12 13 15 / 0.42);
+    backdrop-filter: blur(3px);
+  }
+}
+
+@layer components {
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-sm);
+  }
+  .glass {
+    background: var(--glass);
+    backdrop-filter: saturate(1.4) blur(18px);
+    -webkit-backdrop-filter: saturate(1.4) blur(18px);
+  }
+  .display {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    letter-spacing: -0.02em;
+  }
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+    border-radius: 0.75rem;
+  }
+  .orb {
+    background: conic-gradient(from 180deg, var(--orb-a), var(--orb-b), var(--orb-c), var(--orb-a));
+  }
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

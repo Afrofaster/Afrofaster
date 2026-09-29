@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      # A NON-superuser role: superusers bypass Row Level Security, which would hide RLS bugs.
+      DATABASE_URL: postgres://lia:lia@localhost:5432/lia_test
+      TEST_DATABASE_URL: postgres://lia:lia@localhost:5432/lia_test
+      APP_URL: http://localhost:3100
+      OPENAI_API_KEY: ""
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Create app role and database
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE ROLE lia LOGIN PASSWORD 'lia' NOSUPERUSER NOBYPASSRLS;"
+          PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE lia_test OWNER lia;"
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run db:migrate:test
+      - run: npm run test:unit
+      - run: npm run test:integration
+      - run: npm run build
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: test-results/
+          retention-days: 7
