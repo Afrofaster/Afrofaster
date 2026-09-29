@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/fields";
 import { Card, EmptyState, Progress, SectionTitle } from "@/components/ui/primitives";
 import { formatRelative, formatShort } from "@/domain/dates";
+import { listAttachments } from "@/application/attachments";
+import { AttachmentsPanel } from "@/components/features/attachments-panel";
 import { loadAsUser } from "@/server/action";
 
 export const metadata: Metadata = { title: "Proyecto" };
@@ -25,8 +27,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const data = await loadAsUser(async (ctx) => {
     try {
       const project = await getProject(ctx, id);
-      const [tasks, milestones, summary] = await Promise.all([listTasks(ctx, { kind: "project", projectId: id }), listMilestones(ctx, id), listProjects(ctx)]);
-      return { project, tasks, milestones, summary: summary.find((s) => s.id === id)!, today: ctx.today };
+      const [tasks, milestones, summary, files] = await Promise.all([listTasks(ctx, { kind: "project", projectId: id }), listMilestones(ctx, id), listProjects(ctx), listAttachments(ctx, "project", id)]);
+      return { project, tasks, milestones, files, summary: summary.find((s) => s.id === id)!, today: ctx.today };
     } catch (err) {
       if (err instanceof UserFacingError) return null;
       throw err;
@@ -93,6 +95,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           </Card>
         </section>
       ) : null}
+
+      <section>
+        <SectionTitle title="Documentos" />
+        <AttachmentsPanel entityType="project" entityId={project.id} items={data.files} />
+      </section>
 
       <section>
         <SectionTitle title="Editar" />

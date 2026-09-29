@@ -23,14 +23,12 @@ export default async function WaitingPage() {
         subtitle="Lo que otros quedaron de hacer. LÍA te recuerda hacer seguimiento."
         action={
           <SheetButton label="Nuevo" title="Estoy esperando…" variant="primary">
-            {(close) => (
-              <ActionForm action={createWaitingAction} onSuccess={close} className="space-y-4">
-                <Field label="¿De quién?" htmlFor="w-p"><Input id="w-p" name="person" required placeholder="Carlos" autoFocus /></Field>
-                <Field label="¿Qué?" htmlFor="w-i"><Input id="w-i" name="expectedItem" placeholder="el contrato firmado" /></Field>
-                <Field label="¿Para cuándo?" htmlFor="w-d"><Input id="w-d" name="expectedDate" type="date" /></Field>
-                <Button type="submit" size="lg" className="w-full">Guardar</Button>
-              </ActionForm>
-            )}
+            <ActionForm action={createWaitingAction} className="space-y-4">
+              <Field label="¿De quién?" htmlFor="w-p"><Input id="w-p" name="person" required placeholder="Carlos" autoFocus /></Field>
+              <Field label="¿Qué?" htmlFor="w-i"><Input id="w-i" name="expectedItem" placeholder="el contrato firmado" /></Field>
+              <Field label="¿Para cuándo?" htmlFor="w-d"><Input id="w-d" name="expectedDate" type="date" /></Field>
+              <Button type="submit" size="lg" className="w-full">Guardar</Button>
+            </ActionForm>
           </SheetButton>
         }
       />

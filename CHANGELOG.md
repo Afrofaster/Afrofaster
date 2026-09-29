@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.0 — 2026-09-29
+Phases 4–7.
+
+### Añadido
+- **Google Calendar (solo lectura)**: OAuth con estado anti-CSRF, tokens cifrados (AES-256-GCM), sincronización idempotente a `calendar_events` (manual y horaria); el planner y la capacidad usan la agenda real.
+- **Notificaciones**: política con ventana horaria, presupuesto y dedupe; centro in-app con campana; Web Push por dispositivo; job horario protegido (`/api/cron/hourly` + `vercel.json`).
+- **Voz**: "Hablar con LÍA" (grabar → transcribir → orquestador → respuesta hablada); dictado del navegador como respaldo.
+- **Insights**: patrones sueño/deep work vs Big 3 solo con datos suficientes y tamaño de muestra visible; alimentan el contexto de LÍA.
+- **Aprendizajes** (failure log sin culpa) y **adjuntos** privados (≤ 5 MB) en proyectos, decisiones, personas y desde el chat.
+- Migraciones `0003`–`0004` con RLS para las tablas nuevas.
+- Tests: 112 unitarios/integración + 12 journeys E2E (incluye un recorrido por las 28 pantallas).
+
+### Corregido
+- `/waiting`, `/decisions`, `/people` fallaban al renderizar: pasaban una función de un Server Component a un Client Component. Los formularios en hojas ahora se cierran por contexto.
+- El chat no tenía encabezado accesible cuando había conversación.
+
 ## 0.1.0 — 2026-09-29
 Primer entregable funcional (Phases 0–3).
 

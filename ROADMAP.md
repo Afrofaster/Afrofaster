@@ -14,23 +14,28 @@ Chat con estados en streaming, router de intenciones (reglas + structured output
 ## ✅ Phase 3 — Executive Intelligence
 Priority engine configurable y explicable, Big 3 sugerido/confirmado, Capacity engine con alivio (eliminar/delegar/diferir/reducir/renegociar), Daily Brief, Daily Shutdown (repriorizar, no arrastrar), Weekly CEO Meeting (con *Not this week* y *Stop doing*), Monthly Board, Life Score histórico, Executive Status, candidatos a automatización.
 
-## Phase 4 — Calendar
-- [ ] OAuth Google (solo lectura) → sincronizar a `calendar_events` (tabla ya usada por el planner).
-- [ ] Disponibilidad y conflictos reales.
-- [ ] Escritura con confirmación.
+## ✅ Phase 4 — Calendar (solo lectura)
+- [x] OAuth Google (scope `calendar.readonly`, estado anti-CSRF), tokens cifrados AES-256-GCM.
+- [x] Sincronización ventana −1/+21 días a `calendar_events` (idempotente, elimina lo borrado, eventos "libres" y cancelados no cuentan), manual y horaria.
+- [x] El planner y el motor de capacidad usan la agenda real.
+- [ ] Escritura (crear/mover citas) — siempre con confirmación.
 
-## Phase 5 — Memory & Insights
+## ✅ Phase 5 — Memory & Insights
+- [x] Patrones con umbral mínimo (≥ 5 días por grupo): sueño vs Big 3, deep work vs Big 3; muestran el tamaño de muestra. Alimentan el contexto de LÍA.
+- [x] Failure log sin culpa (causa raíz, sistema vs voluntad).
+- [x] Adjuntos (PDF, imágenes, Word, Excel ≤ 5 MB) en proyectos, decisiones, personas y desde el chat, privados por RLS.
 - [ ] pgvector para `memories` (misma firma `searchMemories`).
-- [ ] Patrones con umbral mínimo de datos ("días con < 6 h de sueño → −31 % Big 3" solo si n suficiente).
-- [ ] Failure log UI (tabla lista).
-- [ ] Adjuntos (tabla lista; falta almacenamiento, p. ej. Supabase Storage).
+- [ ] Mover blobs a object storage (Supabase Storage/S3) — `storage_key` ya lo contempla.
 
-## Phase 6 — Notifications
-- [ ] Web Push (VAPID) con `notification_budget`: Morning Brief, vencimientos, seguimientos, revisiones, riesgo crítico.
-- [ ] Job programado (Vercel Cron) que respete presupuesto y dedupe.
+## ✅ Phase 6 — Notifications
+- [x] Política pura: ventana horaria local, presupuesto diario, dedupe, riesgo crítico primero.
+- [x] Centro de notificaciones in-app + campana con no leídas.
+- [x] Web Push (VAPID) por dispositivo; suscripciones expiradas se limpian solas.
+- [x] Job horario (`/api/cron/hourly`, protegido con `CRON_SECRET`, `vercel.json`).
 
-## Phase 7 — Voice
-- [ ] Conversación en tiempo real (`OPENAI_MODEL_VOICE`) → mismo orquestador.
+## ✅ Phase 7 — Voice
+- [x] "Hablar con LÍA": audio → transcripción → mismo orquestador → respuesta hablada (TTS), con dictado del navegador como respaldo sin key.
+- [ ] Conversación full-duplex en tiempo real (`OPENAI_MODEL_VOICE`, WebRTC) sobre el mismo orquestador.
 
 ## Métricas de éxito
 `capture_success_rate`, `weekly_review_completion`, `priority_completion`, `overdue_reduction`, `user_corrections_to_ai` (evento `ai_correction`), `tool_success_rate` (`agent_action_logs`), control percibido semanal (1–5). North Star: resultados importantes completados por semana.

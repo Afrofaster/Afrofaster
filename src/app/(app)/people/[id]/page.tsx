@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/fields";
 import { Card, SectionTitle } from "@/components/ui/primitives";
 import { formatRelative } from "@/domain/dates";
+import { listAttachments } from "@/application/attachments";
+import { AttachmentsPanel } from "@/components/features/attachments-panel";
 import { loadAsUser } from "@/server/action";
 import { tasks, waitingFor } from "@/server/db/schema";
 
@@ -26,7 +28,7 @@ export default async function PersonPage({ params }: { params: Promise<{ id: str
         ctx.tx.select().from(waitingFor).where(and(eq(waitingFor.personId, id), eq(waitingFor.status, "OPEN"))),
         ctx.tx.select({ id: tasks.id, title: tasks.title, status: tasks.status }).from(tasks).where(eq(tasks.personId, id)),
       ]);
-      return { person, interactions, waits, relatedTasks, today: ctx.today, tz: ctx.timezone };
+      return { person, interactions, waits, relatedTasks, files: await listAttachments(ctx, "person", id), today: ctx.today, tz: ctx.timezone };
     } catch (err) {
       if (err instanceof UserFacingError) return null;
       throw err;
@@ -67,6 +69,11 @@ export default async function PersonPage({ params }: { params: Promise<{ id: str
           </Card>
         ) : <p className="px-1 text-sm text-ink-3">Sin interacciones registradas.</p>}
       </section>
+      <section>
+        <SectionTitle title="Documentos" />
+        <AttachmentsPanel entityType="person" entityId={person.id} items={data.files} />
+      </section>
+
       <section>
         <SectionTitle title="Detalles" />
         <ActionForm action={updatePersonAction.bind(null, person.id)} resetOnSuccess={false} className="card space-y-3 p-4">

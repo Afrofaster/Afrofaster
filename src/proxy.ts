@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/signup", "/offline", "/api/health", "/manifest.webmanifest", "/sw.js"];
+const PUBLIC_PATHS = ["/login", "/signup", "/offline", "/api/health", "/api/cron", "/manifest.webmanifest", "/sw.js"];
 
 /**
  * Optimistic auth redirect only (cookie presence). Real validation happens

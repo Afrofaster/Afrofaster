@@ -19,17 +19,15 @@ export default async function PeoplePage() {
         subtitle="Contexto humano: quién es quién y qué hablaron."
         action={
           <SheetButton label="Persona" title="Nueva persona" variant="primary">
-            {() => (
-              <ActionForm action={createPersonAction} className="space-y-4">
-                <Field label="Nombre" htmlFor="pe-n"><Input id="pe-n" name="name" required autoFocus /></Field>
-                <Field label="Relación" htmlFor="pe-r"><Input id="pe-r" name="relationship" placeholder="Cliente, colega, familia…" /></Field>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Empresa" htmlFor="pe-c"><Input id="pe-c" name="company" /></Field>
-                  <Field label="Rol" htmlFor="pe-ro"><Input id="pe-ro" name="role" /></Field>
-                </div>
-                <Button type="submit" size="lg" className="w-full">Guardar</Button>
-              </ActionForm>
-            )}
+            <ActionForm action={createPersonAction} className="space-y-4">
+              <Field label="Nombre" htmlFor="pe-n"><Input id="pe-n" name="name" required autoFocus /></Field>
+              <Field label="Relación" htmlFor="pe-r"><Input id="pe-r" name="relationship" placeholder="Cliente, colega, familia…" /></Field>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Empresa" htmlFor="pe-c"><Input id="pe-c" name="company" /></Field>
+                <Field label="Rol" htmlFor="pe-ro"><Input id="pe-ro" name="role" /></Field>
+              </div>
+              <Button type="submit" size="lg" className="w-full">Guardar</Button>
+            </ActionForm>
           </SheetButton>
         }
       />

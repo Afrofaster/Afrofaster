@@ -12,6 +12,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
+  customType,
   date,
   index,
   integer,
@@ -585,7 +586,10 @@ export const calendarEvents = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index("calendar_events_user_start_idx").on(t.userId, t.startsAt)],
+  (t) => [
+    index("calendar_events_user_start_idx").on(t.userId, t.startsAt),
+    uniqueIndex("calendar_events_external_unique").on(t.userId, t.connectionId, t.externalId),
+  ],
 );
 
 // ─── Reviews & scoring ──────────────────────────────────────────────────────
@@ -822,6 +826,7 @@ export const notifications = pgTable(
     title: text("title").notNull(),
     body: text("body"),
     channel: text("channel").notNull().default("IN_APP"),
+    href: text("href"),
     dedupeKey: text("dedupe_key"),
     scheduledFor: timestamp("scheduled_for", { withTimezone: true }).notNull().defaultNow(),
     sentAt: timestamp("sent_at", { withTimezone: true }),
@@ -843,6 +848,33 @@ export const attachments = pgTable("attachments", {
   sensitiveCategory: sensitiveCategoryEnum("sensitive_category"),
   createdAt: createdAt(),
 });
+
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () => "bytea" });
+
+/** File bytes live apart from metadata so listing attachments never loads blobs. */
+export const attachmentBlobs = pgTable("attachment_blobs", {
+  attachmentId: uuid("attachment_id")
+    .primaryKey()
+    .references(() => attachments.id, { onDelete: "cascade" }),
+  userId: owner(),
+  data: bytea("data").notNull(),
+  createdAt: createdAt(),
+});
+
+/** Web Push subscriptions (one per device/browser). */
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: id(),
+    userId: owner(),
+    endpoint: text("endpoint").notNull(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    userAgent: text("user_agent"),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("push_subscriptions_endpoint_unique").on(t.endpoint)],
+);
 
 /** Minimal, opt-out product analytics. No free text, no PII. */
 export const productEvents = pgTable("product_events", {

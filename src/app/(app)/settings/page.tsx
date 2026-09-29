@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import { eq } from "drizzle-orm";
 import { Download, Trash2 } from "lucide-react";
+import { getCalendarConnection } from "@/application/calendar";
 import { listCommitments } from "@/application/events";
+import { CalendarCard } from "@/components/features/calendar-card";
+import { PushToggle } from "@/components/features/push-toggle";
+import { isGoogleCalendarConfigured } from "@/integrations/calendar";
+import { vapidPublicKey } from "@/integrations/push";
 import { changePasswordAction, deleteAccountAction, saveProfileAction, signOutEverywhereAction } from "@/app/actions/settings";
 import { createCommitmentAction } from "@/app/actions/life";
 import { ActionForm } from "@/components/features/forms";
@@ -16,10 +21,12 @@ import { isAIConfiguredPublic } from "./ai-status";
 
 export const metadata: Metadata = { title: "Ajustes" };
 
-export default async function SettingsPage() {
+export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ calendar?: string }> }) {
+  const sp = await searchParams;
   const data = await loadAsUser(async (ctx) => ({
     profile: (await ctx.tx.query.userProfiles.findFirst({ where: eq(userProfiles.userId, ctx.userId) }))!,
     commitments: await listCommitments(ctx),
+    calendar: (await getCalendarConnection(ctx)) ?? null,
   }));
   const p = data.profile;
   const prefs = p.preferences;
@@ -96,17 +103,22 @@ export default async function SettingsPage() {
         <SectionTitle title="Notificaciones" />
         <Divided>
           <NotificationBudget value={p.notificationBudget} />
-          <p className="px-4 py-3 text-[12.5px] text-ink-3">Morning Brief, vencimientos, seguimientos y revisiones llegan en la fase de notificaciones push. La arquitectura y el presupuesto ya están listos.</p>
+          <PushToggle publicKey={vapidPublicKey()} />
+          <RowLink href="/notifications" title="Centro de notificaciones" subtitle="Brief, vencimientos, seguimientos, revisiones y riesgos." />
         </Divided>
       </section>
 
       <section>
         <SectionTitle title="Calendario" />
-        <Card className="p-4">
-          <p className="text-[14.5px]">Google Calendar</p>
-          <p className="mt-1 text-[12.5px] text-ink-3">Integración de solo lectura en la Fase 4. Mientras tanto, LÍA usa tus eventos capturados (“mañana audiencia a las 9”) y tus compromisos recurrentes.</p>
-          <Button variant="secondary" size="sm" className="mt-3" disabled>Conectar (próximamente)</Button>
-        </Card>
+        <CalendarCard
+          configured={isGoogleCalendarConfigured()}
+          connected={Boolean(data.calendar)}
+          status={data.calendar?.status ?? null}
+          email={data.calendar?.accountEmail ?? null}
+          lastSynced={data.calendar?.lastSyncedAt ? new Intl.DateTimeFormat("es-CO", { timeZone: p.timezone, day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }).format(data.calendar.lastSyncedAt) : null}
+          notice={sp.calendar ?? null}
+        />
+        <p className="mt-2 px-1 text-[12.5px] text-ink-3">También puedes decirle a LÍA tus citas (“mañana audiencia a las 9”) y definir compromisos recurrentes.</p>
       </section>
 
       <section>

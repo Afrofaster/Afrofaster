@@ -7,6 +7,7 @@ import type { Ctx } from "@/application/context";
 import { eventsOn } from "@/application/events";
 import { listGoals } from "@/application/goals";
 import { buildDayPlan, getAttention, getBig3, getLifeStatus, getOpenLoops, runCapacityReview, weekCompletion } from "@/application/intelligence";
+import { getInsights } from "@/application/insights";
 import { searchMemories } from "@/application/memory";
 import { recentAverage } from "@/application/metrics";
 import { listProjects } from "@/application/projects";
@@ -48,6 +49,8 @@ export async function buildContext(ctx: Ctx, intent: Intent, message: string, da
       add("Big 3 hoy", big3.map((b) => `${b.rank}. ${b.title}${b.done ? " ✓" : ""}`).join("\n"));
       add("Capacidad", `${capacity.level}: ${capacity.summary}`);
       add("Atención", attention.map((a) => `- ${a.message}`).join("\n"));
+      const patterns = await getInsights(ctx);
+      if (patterns.insights.length) add("Patrones con datos suficientes", patterns.insights.map((i) => `- ${i.message} (${i.sample})`).join("\n"));
       break;
     }
     case "GET_OPEN_LOOPS": {

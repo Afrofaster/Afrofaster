@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BarChart3, ClipboardCheck, FolderKanban, Hourglass, Inbox, ListChecks, Scale, Search, Settings, Sun, Target, Users } from "lucide-react";
+import { BarChart3, Bell, Lightbulb, Wrench, ClipboardCheck, FolderKanban, Hourglass, Inbox, ListChecks, Scale, Search, Settings, Sun, Target, Users } from "lucide-react";
 import { LogoutButton } from "@/components/layout/logout-button";
 import { Divided, PageHeader, RowLink, SectionTitle } from "@/components/ui/primitives";
 
@@ -22,7 +22,12 @@ const GROUPS = [
     { href: "/metrics", label: "Métricas", sub: "Sueño, foco, finanzas", icon: BarChart3 },
     { href: "/people", label: "Personas", sub: "Contexto humano", icon: Users },
   ] },
+  { title: "Aprendizaje", items: [
+    { href: "/insights", label: "Patrones", sub: "Qué relaciona tu energía con tus resultados", icon: Lightbulb },
+    { href: "/failures", label: "Aprendizajes", sub: "Errores sin culpa, ajustes con sistema", icon: Wrench },
+  ] },
   { title: "Sistema", items: [
+    { href: "/notifications", label: "Notificaciones", sub: "Brief, vencimientos y seguimientos", icon: Bell },
     { href: "/search", label: "Buscar", sub: "En todo LÍA", icon: Search },
     { href: "/settings", label: "Ajustes", sub: "Perfil, privacidad, datos", icon: Settings },
   ] },

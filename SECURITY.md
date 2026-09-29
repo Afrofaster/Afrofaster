@@ -9,6 +9,13 @@
 - Registro cerrado por defecto tras el primer usuario (`ALLOW_SIGNUP`).
 - Preparado para Google/Apple mediante `auth_accounts`.
 
+## Integraciones (fases 4–7)
+- **Google Calendar**: solo scope `calendar.readonly`; flujo OAuth con `state` aleatorio en cookie httpOnly (comparación en tiempo constante); tokens cifrados con AES-256-GCM (`TOKEN_ENCRYPTION_KEY`) y nunca enviados al cliente. Desconectar borra la conexión y sus eventos.
+- **Cron** (`/api/cron/hourly`): rechaza toda llamada sin `CRON_SECRET` (si no está configurado, no corre). Procesa cada usuario dentro de su propio contexto RLS.
+- **Web Push**: suscripciones por usuario con RLS; las expiradas (404/410) se eliminan. El payload solo lleva título, cuerpo corto y ruta interna.
+- **Adjuntos**: máx. 5 MB, lista blanca de tipos, nombre saneado, bytes en tabla separada con RLS; se sirven con `Content-Security-Policy: sandbox`, `nosniff` y `no-store`.
+- **Voz**: el audio va al servidor y de ahí a OpenAI; la API key nunca llega al navegador. No se guarda el audio.
+
 ## Autorización
 - Row Level Security forzada en todas las tablas (ver [DATABASE.md](DATABASE.md)). Tests de aislamiento en `tests/integration/security.test.ts`.
 - Validación server-side con Zod en cada Server Action, Route Handler y herramienta de IA.

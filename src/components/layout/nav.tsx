@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarCheck2, Compass, House, LayoutGrid, Search, Plus } from "lucide-react";
+import { Bell, CalendarCheck2, Compass, House, LayoutGrid, Search, Plus } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { LiaOrb } from "./lia-orb";
 
@@ -14,7 +14,7 @@ const ITEMS = [
   { href: "/more", label: "Más", icon: LayoutGrid },
 ] as const;
 
-const MORE_PATHS = ["/more", "/goals", "/projects", "/inbox", "/reviews", "/decisions", "/metrics", "/people", "/settings", "/waiting", "/tasks", "/search", "/brief", "/shutdown"];
+const MORE_PATHS = ["/more", "/goals", "/projects", "/inbox", "/reviews", "/decisions", "/metrics", "/people", "/settings", "/waiting", "/tasks", "/search", "/brief", "/shutdown", "/notifications", "/failures", "/insights"];
 
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -62,7 +62,7 @@ const SIDEBAR_SECTIONS = [
   { title: "Reflexión", items: [{ href: "/reviews", label: "Revisiones" }, { href: "/decisions", label: "Decisiones" }, { href: "/metrics", label: "Métricas" }, { href: "/people", label: "Personas" }] },
 ];
 
-export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
+export function Sidebar({ onOpenPalette, unread }: { onOpenPalette: () => void; unread: number }) {
   const pathname = usePathname();
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-line bg-bg-tint px-4 py-6 lg:flex">
@@ -97,14 +97,21 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
           </div>
         ))}
       </nav>
+      <Link href="/notifications" className="flex items-center justify-between rounded-xl px-3 py-2 text-[14px] text-ink-2 hover:text-ink">
+        Notificaciones {unread > 0 ? <span className="rounded-full bg-accent px-1.5 text-[11px] font-semibold text-accent-ink">{unread}</span> : null}
+      </Link>
       <Link href="/settings" className="rounded-xl px-3 py-2 text-[14px] text-ink-2 hover:text-ink">Ajustes</Link>
     </aside>
   );
 }
 
-export function MobileTopActions({ onOpenPalette, onCapture }: { onOpenPalette: () => void; onCapture: () => void }) {
+export function MobileTopActions({ onOpenPalette, onCapture, unread }: { onOpenPalette: () => void; onCapture: () => void; unread: number }) {
   return (
     <div className="fixed right-3 top-[max(env(safe-area-inset-top),10px)] z-30 flex gap-1.5 lg:hidden">
+      <Link href="/notifications" className="glass relative grid h-10 w-10 place-items-center rounded-full border border-line text-ink-2 shadow-sm" aria-label={unread > 0 ? `Notificaciones, ${unread} nuevas` : "Notificaciones"}>
+        <Bell className="h-[18px] w-[18px]" />
+        {unread > 0 ? <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-accent ring-2 ring-surface" /> : null}
+      </Link>
       <button onClick={onOpenPalette} className="glass grid h-10 w-10 place-items-center rounded-full border border-line text-ink-2 shadow-sm" aria-label="Buscar">
         <Search className="h-[18px] w-[18px]" />
       </button>

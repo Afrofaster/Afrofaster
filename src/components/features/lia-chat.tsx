@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUp, Check, Mic, MicOff, Paperclip, Pencil, X, Zap } from "lucide-react";
+import { ArrowUp, AudioLines, Check, Mic, MicOff, Paperclip, Pencil, X, Zap } from "lucide-react";
+import { ACCEPT, uploadFile } from "./attachments-panel";
+import { useServerVoice } from "./use-voice";
 import type { ChatMessageDTO } from "@/ai/orchestrator";
 import type { MessageCard, PendingAction } from "@/server/db/schema";
 import { LiaOrb } from "@/components/layout/lia-orb";
@@ -15,20 +17,29 @@ const STARTERS = ["Organízame mañana", "¿Cómo vamos?", "¿Qué tengo pendien
 
 type SpeechRecognitionLike = { lang: string; interimResults: boolean; continuous: boolean; start: () => void; stop: () => void; onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null; onend: (() => void) | null; onerror: (() => void) | null };
 
-export function LiaChat({ initialMessages, initialConversationId, initialQuery, displayName }: { initialMessages: ChatMessageDTO[]; initialConversationId: string | null; initialQuery?: string; displayName: string }) {
+export function LiaChat({ initialMessages, initialConversationId, initialQuery, displayName, serverVoice = false }: { initialMessages: ChatMessageDTO[]; initialConversationId: string | null; initialQuery?: string; displayName: string; serverVoice?: boolean }) {
   const [messages, setMessages] = useState<ChatMessageDTO[]>(initialMessages);
   const [conversationId, setConversationId] = useState(initialConversationId);
   const [text, setText] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [captureMode, setCaptureMode] = useState(false);
   const [listening, setListening] = useState(false);
+  const [voiceMode, setVoiceMode] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const sentInitial = useRef(false);
+  const voiceModeRef = useRef(false);
   const toast = useToast();
   const router = useRouter();
   const capture = useCapture();
+  const voice = useServerVoice();
+
+  useEffect(() => {
+    voiceModeRef.current = voiceMode;
+  }, [voiceMode]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -62,8 +73,10 @@ export function LiaChat({ initialMessages, initialConversationId, initialQuery, 
             const event = JSON.parse(line) as { type: string; label?: string; message?: ChatMessageDTO; conversationId?: string; error?: string };
             if (event.type === "status" && event.label) setStatus(event.label);
             if (event.type === "message" && event.message) {
-              setMessages((m) => [...m, event.message!]);
+              const reply = event.message;
+              setMessages((m) => [...m, reply]);
               if (event.conversationId) setConversationId(event.conversationId);
+              if (voiceModeRef.current) void voice.speak(reply.content);
             }
             if (event.type === "error") throw new Error(event.error);
           }
@@ -77,7 +90,7 @@ export function LiaChat({ initialMessages, initialConversationId, initialQuery, 
         inputRef.current?.focus();
       }
     },
-    [conversationId, status, router],
+    [conversationId, status, router, voice],
   );
 
   useEffect(() => {
@@ -99,11 +112,35 @@ export function LiaChat({ initialMessages, initialConversationId, initialQuery, 
     await send(value);
   }
 
+  async function onAttach(file: File | undefined) {
+    if (!file) return;
+    setUploading(true);
+    const r = await uploadFile(file);
+    setUploading(false);
+    if (fileRef.current) fileRef.current.value = "";
+    toast.show(r.ok ? { message: `“${r.filename}” quedó en tu Inbox como documento. Adjúntalo a un proyecto desde su página.`, href: "/inbox?view=notes" } : { message: r.error, tone: "error" });
+  }
+
   function toggleDictation() {
+    if (serverVoice) {
+      if (voice.recording) {
+        voice.stop();
+        return;
+      }
+      voice.silence();
+      void voice.start(
+        (transcript) => {
+          if (voiceModeRef.current) void send(transcript);
+          else setText((t) => `${t ? `${t} ` : ""}${transcript}`.trim());
+        },
+        (msg) => toast.show({ message: msg, tone: "error" }),
+      );
+      return;
+    }
     const W = window as unknown as { SpeechRecognition?: new () => SpeechRecognitionLike; webkitSpeechRecognition?: new () => SpeechRecognitionLike };
     const Ctor = W.SpeechRecognition ?? W.webkitSpeechRecognition;
     if (!Ctor) {
-      toast.show({ message: "Tu navegador no permite dictado. La voz completa con LÍA llega en una próxima fase.", tone: "info" });
+      toast.show({ message: "Tu navegador no permite dictado y la voz con IA no está configurada en el servidor.", tone: "info" });
       return;
     }
     if (listening) {
@@ -143,6 +180,7 @@ export function LiaChat({ initialMessages, initialConversationId, initialQuery, 
 
   return (
     <div className="flex min-h-[calc(100dvh-10rem)] flex-col">
+      {messages.length > 0 || status ? <h1 className="sr-only">Conversación con LÍA</h1> : null}
       <div className="flex-1 space-y-5 pb-44 lg:pb-32">
         {messages.length === 0 && !status ? (
           <div className="flex flex-col items-center pt-10 text-center animate-fade-up">
@@ -196,12 +234,20 @@ export function LiaChat({ initialMessages, initialConversationId, initialQuery, 
               className="block max-h-44 min-h-12 w-full resize-none bg-transparent px-4 pt-3.5 pb-1 text-[15.5px] leading-snug outline-none"
             />
             <div className="flex items-center gap-1 px-2 pb-2">
-              <ToolbarButton label={listening ? "Detener dictado" : "Voz"} active={listening} onClick={toggleDictation}>
-                {listening ? <MicOff className="h-[18px] w-[18px]" /> : <Mic className="h-[18px] w-[18px]" />}
+              <ToolbarButton label={listening || voice.recording ? "Detener" : "Voz"} active={listening || voice.recording} onClick={toggleDictation}>
+                {voice.transcribing ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" /> : listening || voice.recording ? <MicOff className="h-[18px] w-[18px]" /> : <Mic className="h-[18px] w-[18px]" />}
+                {voice.recording ? <span className="text-[12px] font-medium">Escuchando…</span> : null}
               </ToolbarButton>
-              <ToolbarButton label="Adjuntar" onClick={() => toast.show({ message: "Adjuntar documentos llega pronto: la arquitectura ya está lista.", tone: "info" })}>
-                <Paperclip className="h-[18px] w-[18px]" />
+              {serverVoice ? (
+                <ToolbarButton label={voiceMode ? "Desactivar conversación por voz" : "Hablar con LÍA"} active={voiceMode} onClick={() => { if (voiceMode) voice.silence(); setVoiceMode((v) => !v); }}>
+                  <AudioLines className="h-[18px] w-[18px]" />
+                  <span className="text-[12px] font-medium">{voiceMode ? "Voz" : ""}</span>
+                </ToolbarButton>
+              ) : null}
+              <ToolbarButton label="Adjuntar" onClick={() => fileRef.current?.click()}>
+                {uploading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" /> : <Paperclip className="h-[18px] w-[18px]" />}
               </ToolbarButton>
+              <input ref={fileRef} type="file" accept={ACCEPT} className="sr-only" onChange={(e) => void onAttach(e.target.files?.[0])} aria-label="Adjuntar archivo" />
               <ToolbarButton label="Captura rápida" active={captureMode} onClick={() => setCaptureMode((v) => !v)}>
                 <Zap className="h-[18px] w-[18px]" />
                 <span className="text-[12px] font-medium">{captureMode ? "Captura" : ""}</span>

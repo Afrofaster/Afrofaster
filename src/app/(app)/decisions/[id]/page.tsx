@@ -12,6 +12,8 @@ import { Field, Input, Select, Textarea } from "@/components/ui/fields";
 import { Badge, Card, SectionTitle } from "@/components/ui/primitives";
 import { formatLong } from "@/domain/dates";
 import { DECISION_STATUS_LABEL } from "@/domain/enums";
+import { listAttachments } from "@/application/attachments";
+import { AttachmentsPanel } from "@/components/features/attachments-panel";
 import { loadAsUser } from "@/server/action";
 
 export const metadata: Metadata = { title: "Decisión" };
@@ -20,7 +22,7 @@ export default async function DecisionPage({ params }: { params: Promise<{ id: s
   const { id } = await params;
   const data = await loadAsUser(async (ctx) => {
     try {
-      return { d: await getDecision(ctx, id), today: ctx.today };
+      return { d: await getDecision(ctx, id), files: await listAttachments(ctx, "decision", id), today: ctx.today };
     } catch (err) {
       if (err instanceof UserFacingError) return null;
       throw err;
@@ -73,6 +75,11 @@ export default async function DecisionPage({ params }: { params: Promise<{ id: s
         ) : (
           <Card className="p-4 text-sm text-ink-2">LÍA puede analizar alternativas, costos, riesgos, reversibilidad y lo que falta saber, considerando tu capacidad actual.</Card>
         )}
+      </section>
+
+      <section>
+        <SectionTitle title="Documentos" />
+        <AttachmentsPanel entityType="decision" entityId={d.id} items={data.files} />
       </section>
 
       <section>

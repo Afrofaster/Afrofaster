@@ -45,9 +45,20 @@ Usuario de desarrollo: `jhony@lia.local` / `lia-dev-password` (configurable en `
 | `OPENAI_API_KEY` | Opcional. Solo servidor, nunca `NEXT_PUBLIC_`. |
 | `OPENAI_MODEL_MAIN` | Razonamiento/redacción (por defecto `gpt-5.5`). |
 | `OPENAI_MODEL_FAST` | Clasificación barata (por defecto `gpt-5.4-mini`). |
-| `OPENAI_MODEL_VOICE` | Reservado para la fase de voz (`gpt-realtime-2`). |
+| `OPENAI_MODEL_VOICE` | Reservado para voz en tiempo real (`gpt-realtime-2`). |
+| `OPENAI_MODEL_TRANSCRIBE` / `OPENAI_MODEL_TTS` | "Hablar con LÍA": transcripción y voz (`gpt-4o-mini-transcribe`, `gpt-4o-mini-tts`). |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google Calendar (solo lectura). Redirect URI: `${APP_URL}/api/calendar/google/callback`. |
+| `TOKEN_ENCRYPTION_KEY` | Cifra los tokens OAuth en reposo (`openssl rand -base64 32`). |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` | Web Push (`npx web-push generate-vapid-keys`). |
+| `CRON_SECRET` | Protege `/api/cron/hourly` (notificaciones + sincronización de calendario). |
 | `SEED_USER_EMAIL` / `SEED_USER_PASSWORD` | Usuario del seed de desarrollo. |
 | `LOG_LEVEL` | `debug` \| `info` \| `warn` \| `error`. |
+
+Todo lo opcional se degrada con elegancia: sin Google, LÍA usa tus eventos capturados; sin VAPID, solo notificaciones in-app; sin OpenAI, motor local y dictado del navegador.
+
+### Integraciones opcionales
+- **Google Calendar**: en Google Cloud Console crea un OAuth Client (Web), habilita *Google Calendar API*, añade el redirect URI anterior y el scope `calendar.readonly`. Luego *Ajustes → Calendario → Conectar*.
+- **Notificaciones push**: genera las claves VAPID, configura `CRON_SECRET` y despliega en Vercel (`vercel.json` ya programa el job cada hora; en el plan Hobby Vercel limita los cron a uno diario — usa un cron externo que llame `GET /api/cron/hourly` con `Authorization: Bearer $CRON_SECRET`). Cada dispositivo se activa en *Ajustes → Notificaciones* (en iPhone, primero instala la app en la pantalla de inicio).
 
 ## Desarrollo
 

@@ -55,3 +55,37 @@ self.addEventListener("fetch", (event) => {
     );
   }
 });
+
+self.addEventListener("push", (event) => {
+  let data = { title: "LÍA", body: "", href: "/" };
+  try {
+    data = { ...data, ...event.data.json() };
+  } catch {
+    // Non-JSON payload: show the generic notification.
+  }
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      data: { href: data.href || "/" },
+      lang: "es",
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const href = (event.notification.data && event.notification.data.href) || "/";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((wins) => {
+      for (const w of wins) {
+        if ("focus" in w) {
+          w.navigate(href);
+          return w.focus();
+        }
+      }
+      return self.clients.openWindow(href);
+    }),
+  );
+});

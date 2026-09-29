@@ -69,5 +69,10 @@ Mensajes compuestos ("mañana tengo audiencia a las 9, necesito terminar el escr
 - `ai_request_logs` registra tokens y latencia por propósito.
 - Sin key o con IA desactivada en Ajustes, todo funciona con el motor local.
 
-## Voz (preparada)
-El chat acepta dictado (Web Speech API). La fase de voz en tiempo real usará `OPENAI_MODEL_VOICE` → transcripción → **el mismo** `handleChatMessage` → respuesta de texto/audio.
+## Voz
+- **Hablar con LÍA** (botón de ondas en el chat, requiere OpenAI): el micrófono graba (MediaRecorder) → `POST /api/voice/transcribe` (`OPENAI_MODEL_TRANSCRIBE`) → **el mismo** `handleChatMessage` → `POST /api/voice/speak` (`OPENAI_MODEL_TTS`, voz serena en español). La API key nunca llega al navegador y el audio no se guarda.
+- Sin key: dictado del navegador (Web Speech API).
+- Siguiente paso: full-duplex en tiempo real con `OPENAI_MODEL_VOICE` reutilizando las mismas herramientas.
+
+## Insights en el contexto
+Para "¿cómo vamos?" y la revisión semanal, el context builder incluye solo los patrones que superan el umbral de datos (≥ 5 días por grupo) con su tamaño de muestra, para que LÍA no afirme correlaciones inexistentes.

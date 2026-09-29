@@ -21,14 +21,12 @@ export default async function DecisionsPage() {
         subtitle="Registra cómo decides para decidir mejor la próxima vez."
         action={
           <SheetButton label="Decisión" title="Nueva decisión" variant="primary">
-            {() => (
-              <ActionForm action={createDecisionAction} className="space-y-4">
-                <Field label="¿Qué tienes que decidir?" htmlFor="d-q"><Input id="d-q" name="question" required autoFocus placeholder="¿Acepto un nuevo cliente?" /></Field>
-                <Field label="Contexto" htmlFor="d-c"><Textarea id="d-c" name="context" rows={3} /></Field>
-                <Field label="Fecha límite" htmlFor="d-d"><Input id="d-d" name="deadline" type="date" /></Field>
-                <Button type="submit" size="lg" className="w-full">Abrir decisión</Button>
-              </ActionForm>
-            )}
+            <ActionForm action={createDecisionAction} className="space-y-4">
+              <Field label="¿Qué tienes que decidir?" htmlFor="d-q"><Input id="d-q" name="question" required autoFocus placeholder="¿Acepto un nuevo cliente?" /></Field>
+              <Field label="Contexto" htmlFor="d-c"><Textarea id="d-c" name="context" rows={3} /></Field>
+              <Field label="Fecha límite" htmlFor="d-d"><Input id="d-d" name="deadline" type="date" /></Field>
+              <Button type="submit" size="lg" className="w-full">Abrir decisión</Button>
+            </ActionForm>
           </SheetButton>
         }
       />
